@@ -72,7 +72,9 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                     if(photoFile!=null){
-                        photoUri= FileProvider.getUriForFile(getApplicationContext(),getPackageName(),photoFile);
+                        photoUri= FileProvider.getUriForFile(getApplicationContext(),
+                                getPackageName(),
+                                photoFile);
                         intent.putExtra(MediaStore.EXTRA_OUTPUT,photoUri);
                         startActivityForResult(intent,REQUEST_IMAGE_CAPTURE);
                     }
