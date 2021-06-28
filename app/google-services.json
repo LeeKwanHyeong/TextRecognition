@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "262009955302",
-    "project_id": "textrecognition-ac374",
-    "storage_bucket": "textrecognition-ac374.appspot.com"
+    "project_number": "969392603466",
+    "project_id": "test-1-102c5",
+    "storage_bucket": "test-1-102c5.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:262009955302:android:f874e2b71535f18b7dac27",
+        "mobilesdk_app_id": "1:969392603466:android:a653bc7da418db99f881b3",
         "android_client_info": {
-          "package_name": "com.example.textrecognition"
+          "package_name": "com.example.hec"
         }
       },
       "oauth_client": [
         {
-          "client_id": "262009955302-hf64n0isq9majgo2qipihdccl2iranm1.apps.googleusercontent.com",
+          "client_id": "969392603466-knj89f00ctgqq5s8o627upevlru9nr7a.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDaP23ZHCaUyHx6knyF-LO6geeBgs2q2hU"
+          "current_key": "AIzaSyAr9WRVyQ1OYeDoLw9hB4JI7lxktk_CasY"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "262009955302-hf64n0isq9majgo2qipihdccl2iranm1.apps.googleusercontent.com",
+              "client_id": "969392603466-knj89f00ctgqq5s8o627upevlru9nr7a.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

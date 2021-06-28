@@ -99,26 +99,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
-        if(requestCode==REQUEST_IMAGE_CAPTURE&&resultCode==RESULT_OK){
-            Bitmap bitmap= BitmapFactory.decodeFile(imageFilePath);
-            ExifInterface exif=null;
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
+            ExifInterface exif = null;
 
-            try{
-                exif=new ExifInterface(imageFilePath);
-            }catch(IOException e){
+            try {
+                exif = new ExifInterface(imageFilePath);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
             int exifOrientation;
             int exifDegree;
 
-            if(exif!=null){
-                exifOrientation=exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            if (exif != null) {
+                exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
                 exifDegree = exifOrientationToDegree(exifOrientation);
-            }else{
-                exifDegree=0;
+            } else {
+                exifDegree = 0;
             }
-            ((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap,exifDegree));
+            ((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap, exifDegree));
         }
     }
     private int exifOrientationToDegree(int exifOrientation){
