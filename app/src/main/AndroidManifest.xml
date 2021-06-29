@@ -30,7 +30,7 @@
         </activity>
 
         <provider
-            android:authorities="com.example.TextRecognition"
+            android:authorities="com.example.textrecognition"
             android:name="androidx.core.content.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true">

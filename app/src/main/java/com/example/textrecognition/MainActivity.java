@@ -47,10 +47,21 @@ public class MainActivity extends AppCompatActivity {
     private static  final int REQUEST_IMAGE_CAPTURE=672;
     private String imageFilePath;
     private Uri photoUri;
+
+    private Bitmap imageBitmap;
+    private ImageView iv_result;
+    private TextView recognition_text;
+    private Button mTextbutton,btn_capture;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        recognition_text=(TextView)findViewById(R.id.recognition_text);
+        iv_result=(ImageView) findViewById(R.id.iv_result);
+        mTextbutton=(Button) findViewById(R.id.mTextButton);
+        btn_capture=(Button) findViewById(R.id.btn_capture);
 
         //권한 체크
         TedPermission.with(getApplicationContext())
@@ -81,10 +92,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
-
+        findViewById(R.id.mTextButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                runTextRecognition();
+            }
+        });
     }
+
 
     private File createImageFile() throws IOException {
         String timeStamp=new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -100,12 +115,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
             ExifInterface exif = null;
-
+            Bundle extras=data.getExtras();
+            imageBitmap=(Bitmap) extras.get("data");
+            iv_result.setImageBitmap(imageBitmap);
             try {
                 exif = new ExifInterface(imageFilePath);
             } catch (IOException e) {
@@ -121,9 +138,48 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 exifDegree = 0;
             }
-            ((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap, exifDegree));
+            //((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap, exifDegree));
         }
     }
+
+    private void runTextRecognition() {
+        InputImage image = InputImage.fromBitmap(imageBitmap,0);
+        TextRecognizer recognizer = TextRecognition.getClient();
+        findViewById(R.id.mTextButton).setEnabled(false);
+        recognizer.process(image)
+                .addOnSuccessListener(
+                        new OnSuccessListener<Text>() {
+                            @Override
+                            public void onSuccess(Text texts) {
+                                findViewById(R.id.mTextButton).setEnabled(true);
+                                processTextRecognitionResult(texts);
+                            }
+                        })
+                .addOnFailureListener(
+                        new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                // Task failed with an exception
+                                findViewById(R.id.mTextButton).setEnabled(true);
+                                e.printStackTrace();
+                            }
+                        });
+    }
+
+    private void processTextRecognitionResult(Text texts) {
+        List<Text.TextBlock> blocks = texts.getTextBlocks();
+        if (blocks.size() == 0) {
+            Toast.makeText(this, "No text found", Toast.LENGTH_SHORT).show();
+            return;
+        } else {
+            for(Text.TextBlock block: texts.getTextBlocks())
+            {
+                String text=block.getText();
+                recognition_text.setText(text);
+            }
+        }
+    }
+
     private int exifOrientationToDegree(int exifOrientation){
         if(exifOrientation==ExifInterface.ORIENTATION_ROTATE_90){
             return 90;
@@ -135,11 +191,15 @@ public class MainActivity extends AppCompatActivity {
             return 0;
     }
 
+
     private Bitmap rotate(Bitmap bitmap,float degree){
         Matrix matrix=new Matrix();
         matrix.postRotate(degree);
         return Bitmap.createBitmap(bitmap,0,0,bitmap.getWidth(),bitmap.getHeight(),matrix,true);
     }
+
+
+
     PermissionListener permissionListener=new PermissionListener() {
         @Override
         public void onPermissionGranted() {
@@ -153,4 +213,5 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
 }
