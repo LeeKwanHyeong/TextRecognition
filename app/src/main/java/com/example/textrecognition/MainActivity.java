@@ -60,8 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private static  final int REQUEST_IMAGE_CAPTURE=672;
     private String imageFilePath;
     private Uri photoUri;
-
-    private Bitmap imageBitmap;
+    Bitmap imageBitmap;
     private ImageView iv_result;
     private TextView recognition_text;
     private Button mTextbutton,btn_capture;
@@ -70,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         recognition_text=(TextView)findViewById(R.id.recognition_text);
         iv_result=(ImageView) findViewById(R.id.iv_result);
@@ -88,7 +86,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_capture).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                dispatchTakePictureIntent();
+                recognition_text.setText("");
+                //수정전
+                /*Intent intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if(intent.resolveActivity(getPackageManager()) !=null){
                     File photoFile=null;
                     try{
@@ -103,16 +104,18 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra(MediaStore.EXTRA_OUTPUT,photoUri);
                         startActivityForResult(intent,REQUEST_IMAGE_CAPTURE);
                     }
-                }
+                }*/
             }
         });
         findViewById(R.id.mTextButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 runTextRecognition();
+
             }
         });
     }
+
 
 
     private File createImageFile() throws IOException {
@@ -132,13 +135,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
+
+            Bundle extras=data.getExtras();
+            //Bitmap imageBitmap=(Bitmap) extras.get("data");
+            imageBitmap= (Bitmap) extras.get("data");
+            iv_result.setImageBitmap(imageBitmap);
+
+            /*Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
             ExifInterface exif = null;
-            //Bundle extras=data.getExtras();
-            //imageBitmap=(Bitmap) extras.get("data");
+            Bundle extras=data.getExtras();
+            imageBitmap=(Bitmap) extras.get("data");
             imageBitmap=bitmap;
 
-            //iv_result.setImageBitmap(imageBitmap);
+            iv_result.setImageBitmap(imageBitmap);
             try {
                 exif = new ExifInterface(imageFilePath);
             } catch (IOException e) {
@@ -154,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 exifDegree = 0;
             }
-            ((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap, exifDegree));
+            //((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap, exifDegree));*/
         }
     }
 
@@ -169,8 +178,6 @@ public class MainActivity extends AppCompatActivity {
                             public void onSuccess(Text texts) {
                                 findViewById(R.id.mTextButton).setEnabled(true);
                                 processTextRecognitionResult(texts);
-
-
                             }
                         })
                 .addOnFailureListener(
@@ -193,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
             for(Text.TextBlock block: texts.getTextBlocks())
             {
                 String text=block.getText();
+                Toast.makeText(this,text,Toast.LENGTH_LONG).show();
                 recognition_text.setText(text);
             }
         }
@@ -232,6 +240,13 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void dispatchTakePictureIntent()
+    {
+        Intent takePictureIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if(takePictureIntent.resolveActivity(getPackageManager())!=null){
+            startActivityForResult(takePictureIntent,REQUEST_IMAGE_CAPTURE);
+        }
+    }
 
 
 }
