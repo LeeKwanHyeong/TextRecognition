@@ -121,8 +121,10 @@ public class MainActivity extends AppCompatActivity {
             Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
             ExifInterface exif = null;
             Bundle extras=data.getExtras();
-            imageBitmap=(Bitmap) extras.get("data");
-            iv_result.setImageBitmap(imageBitmap);
+            //imageBitmap=(Bitmap) extras.get("data");
+            imageBitmap=bitmap;
+
+            //iv_result.setImageBitmap(imageBitmap);
             try {
                 exif = new ExifInterface(imageFilePath);
             } catch (IOException e) {
@@ -138,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 exifDegree = 0;
             }
-            //((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap, exifDegree));
+            ((ImageView) findViewById(R.id.iv_result)).setImageBitmap(rotate(bitmap, exifDegree));
         }
     }
 
