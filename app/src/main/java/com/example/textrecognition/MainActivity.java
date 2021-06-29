@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void runTextRecognition() {
         InputImage image = InputImage.fromBitmap(imageBitmap,0);
-        TextRecognizer recognizer = TextRecognition.getClient();
+        TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         findViewById(R.id.mTextButton).setEnabled(false);
         recognizer.process(image)
                 .addOnSuccessListener(
