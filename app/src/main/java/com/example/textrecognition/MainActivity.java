@@ -19,6 +19,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -27,6 +29,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.nl.languageid.IdentifiedLanguage;
+import com.google.mlkit.nl.languageid.LanguageIdentification;
+import com.google.mlkit.nl.languageid.LanguageIdentificationOptions;
+import com.google.mlkit.nl.languageid.LanguageIdentifier;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
@@ -40,6 +46,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+
+import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView iv_result;
     private TextView recognition_text;
     private Button mTextbutton,btn_capture;
+    private LanguageIdentifier languageIdentification;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +72,14 @@ public class MainActivity extends AppCompatActivity {
         iv_result=(ImageView) findViewById(R.id.iv_result);
         mTextbutton=(Button) findViewById(R.id.mTextButton);
         btn_capture=(Button) findViewById(R.id.btn_capture);
+
+        languageIdentification = LanguageIdentification.getClient();
+        // Any new instances of LanguageIdentification needs to be closed appropriately.
+        // LanguageIdentification automatically calls close() on the ON_DESTROY lifecycle event,
+        // so here we can add our languageIdentification instance as a LifecycleObserver for this
+        // activity and have it be closed when this activity is destroyed.
+        getLifecycle().addObserver(languageIdentification);
+
 
         //권한 체크
         TedPermission.with(getApplicationContext())
@@ -155,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
                             public void onSuccess(Text texts) {
                                 findViewById(R.id.mTextButton).setEnabled(true);
                                 processTextRecognitionResult(texts);
+                                identifyLanguage(texts.getText());
                             }
                         })
                 .addOnFailureListener(
@@ -215,5 +234,121 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    private void identifyPossibleLanguages(final String inputText) {
+        languageIdentification = LanguageIdentification.getClient();
+        languageIdentification
+                .identifyPossibleLanguages(inputText)
+                .addOnSuccessListener(
+                        this,
+                        new OnSuccessListener<List<IdentifiedLanguage>>() {
+                            @Override
+                            public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
+                                List<String> detectedLanguages =
+                                        new ArrayList<>(identifiedLanguages.size());
+                                for (IdentifiedLanguage language : identifiedLanguages) {
+                                    detectedLanguages.add(
+                                            String.format(
+                                                    Locale.US,
+                                                    "%s (%3f)",
+                                                    language.getLanguageTag(),
+                                                    language.getConfidence())
+                                    );
+                                }
+                                recognition_text.append(
+                                        String.format(
+                                                Locale.US,
+                                                "\n%s - [%s]",
+                                                inputText,
+                                                TextUtils.join(", ", detectedLanguages)));
+                            }
+                        })
+                .addOnFailureListener(
+                        this,
+                        new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Language identification error", e);
+                                Toast.makeText(
+                                        MainActivity.this, R.string.language_id_error,
+                                        Toast.LENGTH_SHORT)
+                                        .show();
+                            }
+                        });
+    }
 
+    private void identifyLanguage(final String inputText) {
+        languageIdentification
+                .identifyLanguage(inputText)
+                .addOnSuccessListener(
+                        this,
+                        new OnSuccessListener<String>() {
+                            @Override
+                            public void onSuccess(String s) {
+                                recognition_text.append(
+                                        String.format(
+                                                Locale.US,
+                                                "\n%s - %s",
+                                                inputText,
+                                                s));
+                            }
+                        })
+                .addOnFailureListener(
+                        this,
+                        new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Language identification error", e);
+                                Toast.makeText(
+                                        MainActivity.this, R.string.language_id_error,
+                                        Toast.LENGTH_SHORT)
+                                        .show();
+                            }
+                        });
+    }
+
+    private void setConfidence() {
+        // [START set_confidence]
+        LanguageIdentifier languageIdentifier = LanguageIdentification.getClient(
+                new LanguageIdentificationOptions.Builder()
+                        .setConfidenceThreshold(0.34f)
+                        .build());
+        // [END set_confidence]
+    }
+
+    private void getPossibleLanguages(String text) {
+        // [START get_possible_languages]
+        LanguageIdentifier languageIdentifier =
+                LanguageIdentification.getClient();
+        languageIdentifier.identifyPossibleLanguages(text)
+                .addOnSuccessListener(new OnSuccessListener<List<IdentifiedLanguage>>() {
+                    @Override
+                    public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
+                        for (IdentifiedLanguage identifiedLanguage : identifiedLanguages) {
+                            String language = identifiedLanguage.getLanguageTag();
+                            float confidence = identifiedLanguage.getConfidence();
+                            Log.i(TAG, language + " (" + confidence + ")");
+                        }
+                    }
+                })
+                .addOnFailureListener(
+                        new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                // Model couldn’t be loaded or other internal error.
+                                // ...
+                            }
+                        });
+        // [END get_possible_languages]
+    }
+
+    private void setConfidenceThreshold() {
+        // [START set_confidence_threshold]
+        LanguageIdentificationOptions identifierOptions =
+                new LanguageIdentificationOptions.Builder()
+                        .setConfidenceThreshold(0.5f)
+                        .build();
+        LanguageIdentifier languageIdentifier = LanguageIdentification
+                .getClient(identifierOptions);
+        // [END set_confidence_threshold]
+    }
 }
