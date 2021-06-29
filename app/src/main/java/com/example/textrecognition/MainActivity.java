@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bitmap bitmap = BitmapFactory.decodeFile(imageFilePath);
             ExifInterface exif = null;
-            Bundle extras=data.getExtras();
+            //Bundle extras=data.getExtras();
             //imageBitmap=(Bitmap) extras.get("data");
             imageBitmap=bitmap;
 
